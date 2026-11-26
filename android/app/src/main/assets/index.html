@@ -13704,6 +13704,8 @@ function showFullBody(char) {
 /* Auto display illustrations in adult mode */
 (function() {
   const checkAndShow = () => {
+    try {
+    if (typeof cfg !== 'function') return;
     if ((+cfg().heat||0) >= 4 && window.ADULT_FULL) {
       const cur = window.cur || 'yuna';
       const img = window.ADULT_FULL[cur];
@@ -13718,6 +13720,8 @@ function showFullBody(char) {
         }
       }
     }
+  };
+  } catch(e) {}
   };
   setInterval(checkAndShow, 2000);
 })();
