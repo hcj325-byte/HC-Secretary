@@ -36,10 +36,10 @@ jobs:
           name: HC-Secretary-G
           path: android/app/build/outputs/apk/release/*.apk
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v5
-          name: HC 비서실 G v5
-          files: android/app/build/outputs/apk/release/*.apk
-          generate_release_notes: true
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK=$(find android/app/build/outputs/apk/release -name '*.apk' | head -1)
+          echo "APK found: $APK"
+          gh release create "v5" "$APK" --title "HC 비서실 G v5" --latest --notes "Native bridge version"
