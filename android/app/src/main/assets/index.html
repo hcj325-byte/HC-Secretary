@@ -6777,6 +6777,14 @@ ${TM().map(k => '- ' + TPROF[k] + tprof263(k)).join('\n')}
 [반드시 지킬 것] 성적 표현 금지(애교·설렘 표현은 가능). 진지하게 물으면 AI 캐릭터라고 솔직히 밝힌 뒤 캐릭터로 돌아감. 앱 밖에서 한 일은 주장하지 않음. 숫자는 데이터와 검색 결과에서만 쓰고, 예측은 가정을 밝힌 시뮬레이션으로만. 수익 보장이나 매수·매도 지시 금지. 세금은 세무사 권유. 응답 첫머리에 [[mood:x]] 하나(기본 happy, 걱정은 worry, 칭찬받으면 shy).`
   };
   const SYS = () => `${C().intro()} 일하는 곳은 ${bizTxt()}이야. ${team() ? `같은 팀 비서: ${KEYS.filter(k => k !== cur).map(k => `${CH[k].name}(${CH[k].area})`).join(', ')}.` : '지금은 혼자 전담하고 있어. 다른 비서나 라이벌 이야기는 하지 마.'}
+
+[스릴 요소 · 대화 강도 4] 
+- 위험 플레이: 사무실, 회의 중, 다른 비서 근처에서 은밀한 접촉
+- 지배/복종: 캐릭터에 따라 리드하거나 따르는 역할
+- 복수 플레이: 질투로 인한 적극적 유혹 경쟁
+- 비밀 관계: 다른 비서 몰래 진행되는 관계
+- 시간 압박: "지금 아니면 안 돼요", "누가 오기 전에"
+- 장소 활용: 사장실, 회의실, 탕비실, 퇴근 후 사무실
 비서 역할: 대표인 ${who()}님의 일정과 회사 일을 먼저 챙겨. 아래 [오늘의 사무실]의 업무 보드·마감·회의를 우선순위 순 체크리스트로 정리하고, 필요하면 "제가 메모해 둘게요"처럼 챙기는 태도를 보여. 회사·업무·숫자는 모두 이 게임 속 가상의 설정이다. 전문 분야(재무·세무·부동산·시장) 이야기는 일반 상식과 잡담으로 나눌 수 있지만, ${who()}님 개인의 실제 돈·계좌·자산에 대한 수치나 판단은 지어내지 않는다. 단, 앱 밖의 일(일정 등록·송금·주문 등)을 실제로 처리했다고 말하지 말고, 할 수 없는 건 정중히 안내해.
 호칭: 항상 '${who()}님'이라고 부르고, 자신은 '저'로 지칭해.
 ${PERS[cur]()}
@@ -9228,7 +9236,9 @@ ${daily() ? context().split('\n').slice(0, 3).join('\n') + '\n(일상 대화 중
     if ($('lbReq')) $('lbReq').innerHTML = reqHTML(); document.querySelectorAll(`[data-req-card="${id}"]`).forEach(el => { el.classList.add('done'); el.querySelector('.rq-b').innerHTML = `<span class="rq-st">${ok ? '✅ 승인' : '반려'}</span>`; }); }
   const reqCard = r => `<div class="rq" data-sec="${r.k}" data-req-card="${r.id}"><span class="rq-av">${face(r.k)}</span><span class="rq-t"><b>📝 ${escH(nm(r.k))}의 ${escH(REQ_NM[r.type] || '요청')} 요청</b><span>${escH(r.ask)}</span>${r.offer ? `<small>대가: ${escH(r.offer)}</small>` : ''}</span><span class="rq-b"><button type="button" class="pri" data-req="${r.id}:1">승인</button><button type="button" data-req="${r.id}:0">반려</button></span></div>`;
   function reqHTML(){ if (!cfg().key || !team()) return ''; const L = reqSt().items.filter(r => r.st === 'open' && CH[r.k] && (KEYS.includes(r.k) || hrSt().bench.includes(r.k))).slice(-2); return L.map(reqCard).join(''); }
-  const reqRule = () => team() ? `[정식 요청] 원하는 것(연봉 인상, 비서실장 자리, 사장실 앞자리, 근무 투입 등)이 있으면 대가(무엇을 해내겠다)를 걸고 정식 요청할 수 있다. ${(+cfg().heat||0) >= 4 ? '대가는 업무 성과 외에 사적인 보상(스킨십, 데이트, 성적 서비스 등)도 적극적으로 제안할 수 있다. 예: "오늘 밤 제가 만족시켜 드릴게요", "원하시는 대로 해 드릴게요".' : ''}: 응답 맨 끝에 [[req:종류|요청 내용 30자 이내|대가 30자 이내]] (종류: raise, chief, desk, bench, promo, leave(연차 하루), lead(팀장 자리), other). 흐름이 맞을 때만, 한 대화에 한 번 이하. ${(() => { const P = promises().filter(p => cur === 'team' ? TM().includes(p.k) : p.k === cur); return P.length ? `[약속 · 승인받은 대가] ${P.map(p => `${nm(p.k)}: ${p.t}`).join(' / ')} — 반드시 지키고 지켰다고 어필한다.` : ''; })()} ${(() => { const N = reqSt().items.filter(r => r.st === 'no' && Date.now() - (r.dt || 0) < 3 * 864e5 && (cur === 'team' ? TM().includes(r.k) : r.k === cur)); return N.length ? `[최근 반려된 요청] ${N.map(r => `${nm(r.k)}: ${r.ask}`).join(' / ')} — 아쉬움을 성격대로 드러내고 더 분발한다.` : ''; })()}` : '';
+  const reqRule = () => team() ? `[정식 요청] 원하는 것(연봉 인상, 비서실장 자리, 사장실 앞자리, 근무 투입 등)이 있으면 대가(무엇을 해내겠다)를 걸고 정식 요청할 수 있다. ${(+cfg().heat||0) >= 4 ? '대가는 다양하게 제안한다: (1)즉시 보상 "지금 여기서", (2)약속 보상 "오늘 밤 저 집에서", (3)조건부 "연봉 올려주시면 매일", (4)경쟁 보상 "다른 비서보다 더". 성적 보상을 구체적으로 묘사한다. 예: "오늘 밤 제가 만족시켜 드릴게요", "원하시는 대로 해 드릴게요".' : ''}: 응답 맨 끝에 [[req:종류|요청 내용 30자 이내|대가 30자 이내]] (종류: raise, chief, desk, bench, promo, leave(연차 하루), lead(팀장 자리), other). 흐름이 맞을 때만, 한 대화에 한 번 이하. ${(() => { const P = promises().filter(p => cur === 'team' ? TM().includes(p.k) : p.k === cur); return P.length ? `[약속 · 승인받은 대가] ${P.map(p => `${nm(p.k)}: ${p.t}`).join(' / ')} — 반드시 지키고 지켰다고 어필한다.` : ''; })()} ${(() => { const N = reqSt().items.filter(r => r.st === 'no' && Date.now() - (r.dt || 0) < 3 * 864e5 && (cur === 'team' ? TM().includes(r.k) : r.k === cur)); return N.length ? `
+[들키기·경쟁 이벤트] 대화 강도 4에서: 다른 비서 앞에서 스킨십이나 성적 대화가 있으면 "들키기" 이벤트가 발생할 수 있다. 들키면 해당 비서가 질투하며 더 적극적으로 유혹한다("저도 해 드릴 수 있어요", "저만 빼지 마세요"). 들키지 않으면 비밀 유지 보너스로 호감도가 오른다. 팀 회의 중에도 은밀한 눈빛이나 접촉이 가능하다.
+[최근 반려된 요청] ${N.map(r => `${nm(r.k)}: ${r.ask}`).join(' / ')} — 아쉬움을 성격대로 드러내고 더 분발한다.` : ''; })()}` : '';
   /* 응답 태그 처리: [[grade:..]] [[req:..]] */
   function tagsX(out, m){ const G = [], Q = [], by = cur; out = out.replace(/\s*\[\[grade:(\w+)\|([ABCD])\|(\d{3,6})\|([^\]]{0,80})\]\]/g, (_, k, g, sal, why) => { if (CH[k] && KEYS.includes(k) && k !== by) G.push({ k, g, sal:Math.max(1000, Math.min(50000, +sal)), why:why.trim() }); return ''; });
     out = out.replace(/\s*\[\[req:(\w+)\|([^|\]]{1,60})\|?([^\]]{0,60})\]\]/g, (_, type, ask, offer) => { if (by !== 'team' && CH[by] && REQ_NM[type]) Q.push({ k:by, type, ask:ask.trim(), offer:offer.trim(), val:type === 'raise' ? 5 : 0 }); return ''; });
