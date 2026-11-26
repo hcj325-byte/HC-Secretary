@@ -13761,5 +13761,23 @@ function checkForUpdate() {
   else alert('앱에서만 업데이트 확인이 가능합니다.');
 }
 </script>
+
+<script>
+/* Streaming response handler */
+window.streamBuffer = '';
+window.onStreamToken = function(token) {
+  window.streamBuffer += token;
+  const last = document.querySelector('#aiLog .ai-m.a:last-child');
+  if (last) last.textContent = window.streamBuffer;
+};
+window.onStreamDone = function(full) {
+  window.streamBuffer = '';
+  if (window.onAskDone) window.onAskDone(full);
+};
+window.onStreamError = function(err) {
+  window.streamBuffer = '';
+  if (window.onAskError) window.onAskError(err);
+};
+</script>
 </body>
 </html>
