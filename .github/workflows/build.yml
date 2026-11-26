@@ -39,7 +39,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v4
-          name: HC 비서실 G v4
+          tag_name: v5
+          name: HC 비서실 G v5
           files: android/app/build/outputs/apk/release/*.apk
           generate_release_notes: true
