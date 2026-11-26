@@ -6791,7 +6791,7 @@ ${TM().map(k => '- ' + TPROF[k] + tprof263(k)).join('\n')}
 
 
 [전체 상향 · 대화 강도 4] 모든 비서가 성인 모드에서 더 적극적이다. 수줍은 캐릭터도 한번 열리면 적극적으로 변하고, 평소 차분한 캐릭터도 야한 상황에서는 다르게 반응한다. 각자 성격에 맞게, 하지만 모두 성적 표현을 숨기지 않는다.
-[스릴 요소 · 대화 강도 4] 
+[선택지 태그] 성행위 장면에서 선택지를 제시할 때 응답 끝에 [[choices:선택1|선택2|선택3]] 태그를 붙인다. [스릴 요소 · 대화 강도 4] 
 - 위험 플레이: 사무실, 회의 중, 다른 비서 근처에서 은밀한 접촉
 - 지배/복종: 캐릭터에 따라 리드하거나 따르는 역할
 - 복수 플레이: 질투로 인한 적극적 유혹 경쟁
@@ -13698,6 +13698,65 @@ function showFullBody(char) {
     scene.prepend(div);
   }
 }
+</script>
+
+<script>
+/* Auto display illustrations in adult mode */
+(function() {
+  const checkAndShow = () => {
+    if ((+cfg().heat||0) >= 4 && window.ADULT_FULL) {
+      const cur = window.cur || 'yuna';
+      const img = window.ADULT_FULL[cur];
+      if (img) {
+        const scene = document.querySelector('.ai-scene');
+        if (scene && !scene.querySelector('.full-body-img')) {
+          const div = document.createElement('div');
+          div.className = 'full-body-img';
+          div.style.cssText = 'text-align:center;margin:10px 0;';
+          div.innerHTML = `<img src="${img}" style="max-width:200px;border-radius:16px;box-shadow:0 4px 20px rgba(255,100,150,.4);">`;
+          scene.prepend(div);
+        }
+      }
+    }
+  };
+  setInterval(checkAndShow, 2000);
+})();
+
+/* Choice buttons UI */
+window.showChoices = function(choices) {
+  const log = document.querySelector('#aiLog');
+  if (!log) return;
+  document.querySelectorAll('.choice-btns').forEach(e => e.remove());
+  const div = document.createElement('div');
+  div.className = 'choice-btns';
+  div.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;justify-content:center;';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.textContent = c;
+    btn.style.cssText = 'padding:10px 16px;border-radius:20px;border:none;background:#C2416B;color:#fff;font-weight:600;cursor:pointer;';
+    btn.onclick = () => { 
+      const inp = document.querySelector('#aiIn');
+      if (inp) { inp.value = c; document.querySelector('#aiSend')?.click(); }
+      div.remove();
+    };
+    div.appendChild(btn);
+  });
+  log.appendChild(div);
+};
+
+/* Parse choices from response */
+const origAppend = Element.prototype.appendChild;
+Element.prototype.appendChild = function(child) {
+  const result = origAppend.call(this, child);
+  if (this.id === 'aiLog' && child.textContent) {
+    const match = child.textContent.match(/\[\[choices:([^\]]+)\]\]/);
+    if (match) {
+      const choices = match[1].split('|');
+      setTimeout(() => showChoices(choices), 100);
+    }
+  }
+  return result;
+};
 </script>
 </body>
 </html>
