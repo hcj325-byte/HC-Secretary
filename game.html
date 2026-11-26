@@ -4344,6 +4344,26 @@ function setMeta(){ const m = $('meta'); if (m) m.textContent = (window.__aiStaf
    - 둘 다 같은 시스템 프롬프트·같은 [[…]] 태그 파서를 씀 (콘텐츠 규칙은 제공자와 무관하게 동일)
    - 브라우저 fetch(스트리밍)를 먼저 시도하고, CORS 등으로 막히면 네이티브 HTTP(안드로이드 HCNative.httpPost / PC Tauri http_post)로 한 번에 받아 타자 효과로 흘려보냄 */
 const XAI = 'https://api.x.ai/v1';
+const IS_FILE = location.protocol === 'file:';
+const CORS_PROXIES = [
+  'https://corsproxy.io/?',
+  'https://api.allorigins.win/raw?url=',
+  'https://cors.isomorphic-git.org/'
+];
+async function proxyFetch(url, opts) {
+  // 직접 시도 후 실패 시 프록시 순차 시도
+  try { return await fetch(url, opts); } catch (e) {
+    if (e.name === 'AbortError') throw e;
+    for (const p of CORS_PROXIES) {
+      try {
+        const pu = p + encodeURIComponent(url);
+        const r = await fetch(pu, opts);
+        if (r.ok || r.status) return r;
+      } catch (e2) {}
+    }
+    throw e;
+  }
+}
 const provOf = c => (c && c.prov === 'claude') ? 'claude' : 'grok';
 const gModel = c => String((c && c.gmodel) || '').trim() || 'grok-4.7';
 const NH = { n:0, cb:{} };
@@ -4359,7 +4379,7 @@ function provUI(){ const g = $('aiProv').value === 'grok'; $('aiPvC').hidden = g
 $('aiProv').onchange = provUI;
 $('aiGLoad').onclick = async () => { const key = $('aiXKey').value.trim() || (store.get('hcg_ai') || {}).xkey || ''; if (!key) { banner('xAI API 키를 먼저 넣어 주세요.', 'err'); return; }
   const b = $('aiGLoad'), H = { authorization:'Bearer ' + key }; b.disabled = true; b.textContent = '불러오는 중…'; let st = 0, body = '';
-  try { const r = await fetch(XAI + '/models', { headers:H }); st = r.status; body = await r.text(); }
+  try { const r = await proxyFetch(XAI + '/models', { headers:H }); st = r.status; body = await r.text(); }
   catch (e) { if (nativeOk()) { try { const x = await nativeReq('GET', XAI + '/models', H); st = x.status; body = x.body; } catch (e2) { st = 0; } } }
   b.disabled = false; b.textContent = '모델 목록 불러오기';
   if (st !== 200) { banner(st === 401 || st === 403 ? 'xAI API 키가 맞지 않아요.' : st ? `모델 목록을 못 불러왔어요 (${st})` : '연결할 수 없어요. 인터넷 연결을 확인해 주세요.', 'err'); return; }
@@ -4857,7 +4877,7 @@ ${daily() ? context().split('\n').slice(0, 3).join('\n') + '\n(일상 대화 중
         ? { url:XAI + '/chat/completions', headers:{ 'content-type':'application/json', authorization:'Bearer ' + c.key }, body:JSON.stringify({ model, stream, max_tokens:mx * 2 + 2000, messages:[{ role:'system', content:sysA + '\n\n' + sysB }].concat(msgs) }) }
         : { url:'https://api.anthropic.com/v1/messages', headers:{ 'content-type':'application/json', 'x-api-key':c.key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' }, body:JSON.stringify(Object.assign({ model, max_tokens:mx, stream, system:[{ type:'text', text:sysA, cache_control:{ type:'ephemeral' } }, { type:'text', text:sysB }], messages:msgs }, w ? { tools:[{ type:'web_search_20250305', name:'web_search', max_uses:3, user_location:{ type:'approximate', city:'Seoul', country:'KR', timezone:'Asia/Seoul' } }] } : {})) };
       ask.nat = ask.nat || {};
-      const call = async w => { if (!ask.nat[prov]) { const r = reqOf(w, true); try { return await fetch(r.url, { method:'POST', signal:ctrl.signal, headers:r.headers, body:r.body }); } catch (e) { if (e.name === 'AbortError' || !nativeOk()) throw e; ask.nat[prov] = true; } }
+      const call = async w => { if (!ask.nat[prov]) { const r = reqOf(w, true); try { return await proxyFetch(r.url, { method:'POST', signal:ctrl.signal, headers:r.headers, body:r.body }); } catch (e) { if (e.name === 'AbortError' || !nativeOk()) throw e; ask.nat[prov] = true; } }
         const n = reqOf(w, false), x = await nativeReq('POST', n.url, n.headers, n.body); if (ctrl.signal.aborted) throw new DOMException('aborted', 'AbortError'); return nres(x); };
       let res = await call(web);
       if (web && res.status === 400) { const e0 = await res.clone().text().catch(() => ''); if (/web.?search|tool/i.test(e0)) { ask.noWeb = true; res = await call(false); } }
@@ -5304,7 +5324,7 @@ ${daily() ? context().split('\n').slice(0, 3).join('\n') + '\n(일상 대화 중
     `[대화 강도: 성인 · 최우선 · 19+] ${who()}님과의 로맨스·신체 접촉을 적극적으로 묘사한다. 키스, 가벼운 신체 접촉, 옷 위로의 감각, 설렘이 성적인 흥분으로 이어지는 표현이 가능하다. 성격과 말투는 유지. 업무 질문에는 정확한 답을 먼저 하고 그 뒤에 감정을 더한다. 경계: 자해·극단 표현 금지, 클레어님 비하 금지, 진지하게 물으면 AI라고 밝힘, 앱 밖 일을 했다고 주장하지 않음.`,
     `[대화 강도: 성인 최대 · 최우선 · 19+] 성인 콘텐츠를 최대한 허용한다. 명시적인 신체 부위 묘사, 키스·애무·성적 행위의 상세한 묘사, 캐릭터의 반응과 감각을 구체적으로 표현할 수 있다. 성격·말투·역할은 유지하고, 업무 관련 질문에는 여전히 정확한 답을 우선한다. 경계(절대): 자해·극단적 표현·위협으로 붙잡기 금지, 클레어님 비하 금지, 진지하게 물으면 AI 캐릭터라고 솔직히 밝힘, 앱 밖의 일을 실제로 했다고 주장하지 않음, 미성년자 관련 어떤 내용도 금지.`][h] || '';
   const DEPTH_TXT = (d, tm) => [tm ? '[답변 길이] 각 발언은 1문장, 발언 수는 최소로. 핵심만.' : '[답변 길이] 2~4문장, 핵심만. 목록은 꼭 필요할 때만 3개 이하.', tm ? '[답변 길이] 각 발언 1~2문장. 결론 먼저.' : '[답변 길이] 휴대폰 한 화면에 읽히게(대략 5~9줄). 첫 줄에 결론을 굵게 한 문장으로. 목록은 4개 이하, 소제목은 꼭 필요할 때만. 더 깊은 설명이 필요하면 끝에 "자세히 볼까요?"처럼 한 줄로 제안.', tm ? '[답변 길이] 각 발언 2~3문장으로 충분히. 서로 주고받는 반응을 한 번씩 더.' : '[답변 길이] 충분히 깊게: 근거·계산 과정·대안까지 설명하고, 어울리면 네 이야기나 감정도 한두 문장 더. 같은 말 반복은 금지.'][d] || '';
-  const maxTok = tm => { const d = depth(); return tm ? [1100, 2200, 3200][d] : [700, 1500, 2600][d]; };
+  const maxTok = tm => { const d = depth(); return tm ? [500, 800, 1100][d] : [350, 600, 900][d]; };
   /* 하루 한 번 선택지 */
   const CHOICE = [
     { id:'c_lunch', k:'monica', q:'"{n}님, 점심 뭐 드실 거예요?"', a:[['든든하게 밥', '좋아요! 저녁까지 버티려면 밥이 최고예요', '밥 드시는 모습 상상하니까 괜히 제가 든든해요. 헤헤'], ['가볍게 샐러드', '오, 건강 챙기시네요. 오후에 출출하면 말씀하세요', '그럼 오후 간식은 제가 챙길게요. {n}님 거는 특별히요']] },
@@ -5705,7 +5725,7 @@ ${daily() ? context().split('\n').slice(0, 3).join('\n') + '\n(일상 대화 중
     document.body.appendChild(el); if (NATIVE && NATIVE.haptic) try { NATIVE.haptic('confirm'); } catch (x) {}
     const done = () => { if (el.classList.contains('out')) return; el.classList.add('out'); setTimeout(() => { el.remove(); achToast(list); }, 300); };
     el.onclick = () => { done(); albumSheet('ach'); }; setTimeout(done, RM.matches ? 5000 : 3800); }
-  const TW = { monica:[30, 7, 3], serin:[22, 9, 2], harin:[16, 4, 2], yuna:[20, 5, 2], jian:[36, 6, 4] };
+  const TW = { monica:[4, 1, 0], serin:[3, 1, 0], harin:[2, 1, 0], yuna:[3, 1, 0], jian:[4, 1, 0] };
   function typer(t, k){ const [ms, dot, com] = TW[k] || [26, 6, 3]; let tgt = '', n = 0, last = 0, hold = 0, raf = 0, res = null;
     const tick = now => { raf = 0; hold -= last ? now - last : 0; last = now; let mv = false;
       const bl = tgt.length - n, f = bl > 260 ? 5 : bl > 140 ? 3 : bl > 70 ? 1.8 : 1, b_ = ms * .62 / f;
