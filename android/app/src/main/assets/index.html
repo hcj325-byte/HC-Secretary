@@ -13779,5 +13779,68 @@ window.onStreamError = function(err) {
   if (window.onAskError) window.onAskError(err);
 };
 </script>
+
+<script>
+/* Parse and display choices as buttons */
+(function() {
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach(m => {
+      m.addedNodes.forEach(node => {
+        if (node.nodeType === 1) {
+          const text = node.textContent || '';
+          const match = text.match(/\[\[choices:([^\]]+)\]\]/);
+          if (match) {
+            const choices = match[1].split('|');
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'choice-btns';
+            btnDiv.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;justify-content:center;';
+            choices.forEach(c => {
+              const btn = document.createElement('button');
+              btn.textContent = c.trim();
+              btn.style.cssText = 'padding:10px 16px;border-radius:20px;border:none;background:#C2416B;color:#fff;font-weight:600;cursor:pointer;';
+              btn.onclick = () => {
+                const inp = document.querySelector('#aiIn');
+                if (inp) { inp.value = c.trim(); document.querySelector('#aiSend')?.click(); }
+                btnDiv.remove();
+              };
+              btnDiv.appendChild(btn);
+            });
+            node.appendChild(btnDiv);
+            // Hide the raw tag
+            node.innerHTML = node.innerHTML.replace(/\[\[choices:[^\]]+\]\]/g, '');
+          }
+        }
+      });
+    });
+  });
+  setTimeout(() => {
+    const log = document.querySelector('#aiLog');
+    if (log) observer.observe(log, { childList: true, subtree: true });
+  }, 1000);
+})();
+
+/* Show illustration in adult mode */
+(function() {
+  setInterval(() => {
+    try {
+      if (typeof cfg !== 'function') return;
+      if ((+cfg().heat||0) >= 4 && window.ADULT_FULL) {
+        const scene = document.querySelector('.ai-scene');
+        if (scene && !scene.querySelector('.adult-img')) {
+          const cur = window.cur || 'yuna';
+          const img = window.ADULT_FULL[cur];
+          if (img) {
+            const div = document.createElement('div');
+            div.className = 'adult-img';
+            div.style.cssText = 'text-align:center;margin:8px 0;';
+            div.innerHTML = '<img src="' + img + '" style="max-width:160px;border-radius:12px;">';
+            scene.prepend(div);
+          }
+        }
+      }
+    } catch(e) {}
+  }, 3000);
+})();
+</script>
 </body>
 </html>
