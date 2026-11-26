@@ -18,14 +18,22 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x android/gradlew || true
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
-      - name: Build with Gradle
+      - name: Build APK
+        working-directory: android
         run: |
-          cd android
-          ./gradlew assembleDebug
+          chmod +x gradlew || true
+          if [ ! -f gradlew ]; then
+            echo "gradlew missing, using system gradle"
+            gradle assembleDebug --no-daemon
+          else
+            ./gradlew assembleDebug --no-daemon
+          fi
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
