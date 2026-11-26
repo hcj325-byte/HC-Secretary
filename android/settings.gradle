@@ -1,0 +1,2 @@
+rootProject.name = 'HC-Secretary'
+include ':app'
