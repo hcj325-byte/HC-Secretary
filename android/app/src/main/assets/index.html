@@ -4350,7 +4350,19 @@ const CORS_PROXIES = [
   'https://api.allorigins.win/raw?url=',
   'https://cors.isomorphic-git.org/'
 ];
+function cleanHeaders(h) {
+  if (!h) return h;
+  const out = {};
+  for (const k in h) {
+    let v = String(h[k] || '');
+    // ISO-8859-1 only
+    v = v.replace(/[^\x00-\xFF]/g, '');
+    out[k] = v;
+  }
+  return out;
+}
 async function proxyFetch(url, opts) {
+  if (opts && opts.headers) opts.headers = cleanHeaders(opts.headers);
   // 직접 시도 후 실패 시 프록시 순차 시도
   try { return await fetch(url, opts); } catch (e) {
     if (e.name === 'AbortError') throw e;
