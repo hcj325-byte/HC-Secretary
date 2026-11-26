@@ -6576,7 +6576,7 @@ ${TM().map(k => '- ' + TPROF[k] + tprof263(k)).join('\n')}
     serin:'상태별 예: switched(모니카 다음) "모니카 씨 요약은 친절하죠. 정확한 건 이쪽입니다." / switched(하린 다음) "설렘은 충분히 채우셨을 테니, 이제 근거를 채우죠." / neglected "…최근 미팅 1회. 서운하다고는 안 했습니다. 기록만 했을 뿐." / comeback "늦으셨네요. …기다린 거 아닙니다. 조금만 기다렸습니다." / leading "1위 유지 중입니다. 이유는 아시죠."',
     harin:'상태별 예: switched(모니카 다음) "또 언니한테 먼저 갔죠?! 칫. 그래도 제가 더 재밌게 해 드릴게요!" / switched(세린 다음) "선배 무표정 보고 오셨죠? 제가 웃게 해 드릴게요!" / neglected "저 진짜 삐졌어요. …3초 지났다, 풀렸어요! 대신 오늘 오래 있어 주기!" / comeback "{n}님!! 너무 오랜만이에요ㅠ 보고 싶었어요!" / leading "이번 주 제가 1등이에요! 언니들한테 자랑해도 되죠?"' };
   let cur = KEYS.concat('team').includes(store.get('hcg_aicur')) ? store.get('hcg_aicur') : 'monica';
-  const single = () => !!cfg().single, team = () => cfg().team !== false, heat = () => { const h = cfg().heat; return h >= 0 && h <= 3 ? +h : cfg().free === false ? 0 : 2; }, depth = () => { const d = cfg().depth; return d >= 0 && d <= 2 ? +d : 1; }, free = () => heat() >= 2;
+  const single = () => !!cfg().single, team = () => cfg().team !== false, heat = () => { const h = cfg().heat; return h >= 0 && h <= 4 ? +h : cfg().free === false ? 0 : 2; }, depth = () => { const d = cfg().depth; return d >= 0 && d <= 2 ? +d : 1; }, free = () => heat() >= 2;
   /* 비서실장: 헨리님이 임명 (팀 리더 · 팀 브리핑) */
   const chief = () => team() && CH[cfg().chief] ? cfg().chief : '';
   const CHIEF = {
