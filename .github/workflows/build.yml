@@ -52,5 +52,5 @@ jobs:
         run: |
           APK=$(find android/app/build/outputs/apk/release -name '*.apk' | head -1)
           echo "APK: $APK ($(stat -c%s "$APK") bytes)"
-          gh release delete v19 --yes || true
-          gh release create "v19" "$APK" --title "HC 비서실 G v19" --latest --notes "With assets"
+          gh release delete v20 --yes || true
+          gh release create "v20" "$APK" --title "HC 비서실 G v20" --latest --notes "With assets"
