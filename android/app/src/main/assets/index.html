@@ -13740,5 +13740,26 @@ Element.prototype.appendChild = function(child) {
   return result;
 };
 </script>
+
+<script>
+/* In-app update check */
+window.onUpdateCheck = function(data) {
+  if (data.error) { alert('업데이트 확인 실패: ' + data.error); return; }
+  const latest = data.tag_name || '';
+  const current = 'v27';
+  if (latest && latest !== current) {
+    if (confirm('새 버전 ' + latest + '이 있습니다. 다운로드할까요?')) {
+      const apk = data.assets && data.assets.find(a => a.name.endsWith('.apk'));
+      if (apk && window.HCNative) HCNative.downloadUpdate(apk.browser_download_url);
+    }
+  } else {
+    alert('최신 버전입니다.');
+  }
+};
+function checkForUpdate() {
+  if (window.HCNative && HCNative.checkUpdate) HCNative.checkUpdate();
+  else alert('앱에서만 업데이트 확인이 가능합니다.');
+}
+</script>
 </body>
 </html>
