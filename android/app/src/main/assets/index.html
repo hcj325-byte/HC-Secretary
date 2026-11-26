@@ -13701,30 +13701,7 @@ function showFullBody(char) {
 </script>
 
 <script>
-/* Auto display illustrations in adult mode */
-(function() {
-  const checkAndShow = () => {
-    try {
-    if (typeof cfg !== 'function') return;
-    if ((+cfg().heat||0) >= 4 && window.ADULT_FULL) {
-      const cur = window.cur || 'yuna';
-      const img = window.ADULT_FULL[cur];
-      if (img) {
-        const scene = document.querySelector('.ai-scene');
-        if (scene && !scene.querySelector('.full-body-img')) {
-          const div = document.createElement('div');
-          div.className = 'full-body-img';
-          div.style.cssText = 'text-align:center;margin:10px 0;';
-          div.innerHTML = `<img src="${img}" style="max-width:200px;border-radius:16px;box-shadow:0 4px 20px rgba(255,100,150,.4);">`;
-          scene.prepend(div);
-        }
-      }
-    }
-  };
-  } catch(e) {}
-  };
-  setInterval(checkAndShow, 2000);
-})();
+
 
 /* Choice buttons UI */
 window.showChoices = function(choices) {
