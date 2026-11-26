@@ -10,8 +10,8 @@ android {
         applicationId "com.hc.secretary"
         minSdk 26
         targetSdk 36
-        versionCode 6
-        versionName "1.0.5"
+        versionCode 7
+        versionName "1.0.6"
     }
 
     signingConfigs {
@@ -28,9 +28,6 @@ android {
             signingConfig signingConfigs.release
             minifyEnabled false
         }
-        debug {
-            signingConfig signingConfigs.release
-        }
     }
 
     compileOptions {
@@ -38,13 +35,13 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    aaptOptions {
-        noCompress "html"
+    sourceSets {
+        main {
+            assets.srcDirs = ['src/main/assets']
+        }
     }
+
     lint {
         abortOnError false
     }
-}
-
-dependencies {
 }
