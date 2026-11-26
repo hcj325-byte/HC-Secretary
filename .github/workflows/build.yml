@@ -18,22 +18,13 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-        with:
-          packages: 'platforms;android-34 build-tools;34.0.0'
 
-      - name: Create local.properties
-        run: echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v3
 
       - name: Build APK
         working-directory: android
-        run: |
-          chmod +x gradlew || true
-          if [ ! -f gradlew ]; then
-            echo "gradlew missing, using system gradle"
-            gradle assembleDebug --no-daemon
-          else
-            ./gradlew assembleDebug --no-daemon
-          fi
+        run: gradle assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
