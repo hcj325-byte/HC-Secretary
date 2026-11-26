@@ -184,8 +184,8 @@ public class MainActivity extends Activity {
             try {
                 c = (HttpURLConnection) new URL(url).openConnection();
                 c.setRequestMethod(method);
-                c.setConnectTimeout(20000);
-                c.setReadTimeout(120000);
+                c.setConnectTimeout(10000);
+                c.setReadTimeout(60000);
                 c.setDoInput(true);
                 c.setUseCaches(false);
                 c.setRequestProperty("Accept", "application/json");
@@ -266,5 +266,70 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void httpGet(String id, String url, String headersJson) { request(id, "GET", url, headersJson, null); }
-    }
+    
+        @JavascriptInterface
+        public void httpStream(String id, String url, String headersJson, String body) {
+            if (!trusted()) return;
+            final String sid = id == null ? "" : id;
+            if (!allowed(url)) {
+                js("window.hcStreamDone && window.hcStreamDone(" + JSONObject.quote(sid) + ",0,'blocked')");
+                return;
+            }
+            pool.execute(() -> {
+                HttpURLConnection c = null;
+                try {
+                    c = (HttpURLConnection) new URL(url).openConnection();
+                    c.setRequestMethod("POST");
+                    c.setConnectTimeout(10000);
+                    c.setReadTimeout(180000);
+                    c.setDoInput(true);
+                    c.setDoOutput(true);
+                    c.setUseCaches(false);
+                    c.setRequestProperty("Accept", "text/event-stream");
+                    c.setRequestProperty("User-Agent", "Mozilla/5.0");
+                    c.setRequestProperty("Connection", "keep-alive");
+                    
+                    if (headersJson != null && !headersJson.isEmpty()) {
+                        JSONObject h = new JSONObject(headersJson);
+                        for (Iterator<String> it = h.keys(); it.hasNext(); ) {
+                            String k = it.next();
+                            String v = h.optString(k, "");
+                            if (v.matches("^[\\x20-\\x7E]*$")) {
+                                c.setRequestProperty(k, v);
+                            }
+                        }
+                    }
+                    
+                    if (body != null && !body.isEmpty()) {
+                        byte[] bytes = body.getBytes("UTF-8");
+                        c.setRequestProperty("Content-Length", String.valueOf(bytes.length));
+                        try (OutputStream os = c.getOutputStream()) {
+                            os.write(bytes);
+                        }
+                    }
+                    
+                    int status = c.getResponseCode();
+                    InputStream is = status >= 400 ? c.getErrorStream() : c.getInputStream();
+                    BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+                    StringBuilder full = new StringBuilder();
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        if (line.startsWith("data: ")) {
+                            String data = line.substring(6);
+                            if (data.equals("[DONE]")) break;
+                            full.append(data);
+                            final String chunk = data.replace("\\", "\\\\").replace("'", "\\'");
+                            js("window.hcStreamChunk && window.hcStreamChunk(" + JSONObject.quote(sid) + "," + JSONObject.quote(chunk) + ")");
+                        }
+                    }
+                    br.close();
+                    js("window.hcStreamDone && window.hcStreamDone(" + JSONObject.quote(sid) + "," + status + "," + JSONObject.quote(full.toString()) + ")");
+                } catch (Exception e) {
+                    js("window.hcStreamDone && window.hcStreamDone(" + JSONObject.quote(sid) + ",0," + JSONObject.quote(e.getMessage()) + ")");
+                } finally {
+                    if (c != null) c.disconnect();
+                }
+            });
+        }
+}
 }
