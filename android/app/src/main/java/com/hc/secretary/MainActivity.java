@@ -184,9 +184,10 @@ public class MainActivity extends Activity {
             try {
                 c = (HttpURLConnection) new URL(url).openConnection();
                 c.setRequestMethod(method);
-                c.setConnectTimeout(15000);
-                c.setReadTimeout(150000);
-                c.setInstanceFollowRedirects(false);
+                c.setConnectTimeout(30000);
+                c.setReadTimeout(180000);
+                c.setInstanceFollowRedirects(true);
+                c.setRequestProperty("Connection", "close");
                 c.setRequestProperty("Accept", "application/json");
                 c.setRequestProperty("User-Agent", "HCSecretary-Android/1");
                 if (headersJson != null && !headersJson.isEmpty()) {
