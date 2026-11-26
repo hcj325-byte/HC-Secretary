@@ -42,4 +42,4 @@ jobs:
         run: |
           APK=$(find android/app/build/outputs/apk/release -name '*.apk' | head -1)
           echo "APK found: $APK"
-          gh release create "v5" "$APK" --title "HC 비서실 G v5" --latest --notes "Native bridge version"
+          gh release create "v6" "$APK" --title "HC 비서실 G v6" --latest --notes "Native bridge version"
