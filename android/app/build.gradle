@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    namespace 'kr.hc.secretary.g'
+    namespace 'com.hc.secretary'
     compileSdk 36
 
     defaultConfig {
-        applicationId "kr.hc.secretary.g"
+        applicationId "com.hc.secretary"
         minSdk 26
         targetSdk 36
-        versionCode 4
-        versionName "1.0.3"
+        versionCode 5
+        versionName "1.0.4"
     }
 
     signingConfigs {
