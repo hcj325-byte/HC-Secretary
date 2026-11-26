@@ -334,4 +334,32 @@ public class MainActivity extends Activity {
             });
         }
 }
+
+    @android.webkit.JavascriptInterface
+    public void checkUpdate() {
+        new Thread(() -> {
+            try {
+                java.net.URL url = new java.net.URL("https://api.github.com/repos/hcj325-byte/HC-Secretary/releases/latest");
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestProperty("Accept", "application/vnd.github+json");
+                java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream()));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) sb.append(line);
+                reader.close();
+                final String json = sb.toString();
+                runOnUiThread(() -> wv.evaluateJavascript("if(window.onUpdateCheck)onUpdateCheck(" + json + ")", null));
+            } catch (Exception e) {
+                runOnUiThread(() -> wv.evaluateJavascript("if(window.onUpdateCheck)onUpdateCheck({error:'" + e.getMessage() + "'})", null));
+            }
+        }).start();
+    }
+
+    @android.webkit.JavascriptInterface
+    public void downloadUpdate(String url) {
+        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_VIEW);
+        intent.setData(android.net.Uri.parse(url));
+        startActivity(intent);
+    }
+
 }
