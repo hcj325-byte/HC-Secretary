@@ -179,41 +179,53 @@ public class MainActivity extends Activity {
         }
         pool.execute(() -> {
             int status = 0;
-            String text;
+            String text = "";
             HttpURLConnection c = null;
             try {
                 c = (HttpURLConnection) new URL(url).openConnection();
                 c.setRequestMethod(method);
-                c.setConnectTimeout(30000);
-                c.setReadTimeout(180000);
-                c.setInstanceFollowRedirects(true);
-                c.setRequestProperty("Connection", "close");
+                c.setConnectTimeout(20000);
+                c.setReadTimeout(120000);
+                c.setDoInput(true);
+                c.setUseCaches(false);
                 c.setRequestProperty("Accept", "application/json");
-                c.setRequestProperty("User-Agent", "HCSecretary-Android/1");
+                c.setRequestProperty("User-Agent", "Mozilla/5.0");
+                c.setRequestProperty("Connection", "close");
+                
                 if (headersJson != null && !headersJson.isEmpty()) {
-                    JSONObject h = new JSONObject(headersJson);
-                    for (Iterator<String> it = h.keys(); it.hasNext(); ) {
-                        String k = it.next();
-                        if (k.indexOf('\n') >= 0 || k.indexOf('\r') >= 0) continue;
-                        String v = h.optString(k, "");
-                        if (v.indexOf('\n') >= 0 || v.indexOf('\r') >= 0) continue;
-                        c.setRequestProperty(k, v);
-                    }
+                    try {
+                        JSONObject h = new JSONObject(headersJson);
+                        for (Iterator<String> it = h.keys(); it.hasNext(); ) {
+                            String k = it.next();
+                            String v = h.optString(k, "");
+                            // Only ASCII headers
+                            if (v.matches("^[\\x20-\\x7E]*$")) {
+                                c.setRequestProperty(k, v);
+                            }
+                        }
+                    } catch (Exception ignored) {}
                 }
-                if ("POST".equals(method)) {
-                    byte[] out = (body == null ? "" : body).getBytes(StandardCharsets.UTF_8);
+                
+                if ("POST".equals(method) && body != null) {
+                    byte[] out = body.getBytes(StandardCharsets.UTF_8);
                     c.setDoOutput(true);
                     c.setFixedLengthStreamingMode(out.length);
-                    try (OutputStream os = c.getOutputStream()) { os.write(out); }
+                    try (OutputStream os = c.getOutputStream()) { 
+                        os.write(out); 
+                        os.flush();
+                    }
                 }
+                
                 status = c.getResponseCode();
                 InputStream in = status >= 400 ? c.getErrorStream() : c.getInputStream();
-                text = in == null ? "" : readAll(in);
+                if (in != null) {
+                    text = readAll(in);
+                }
             } catch (Exception e) {
                 status = 0;
                 text = e.getClass().getSimpleName() + ": " + (e.getMessage() == null ? "" : e.getMessage());
             } finally {
-                if (c != null) c.disconnect();
+                if (c != null) try { c.disconnect(); } catch (Exception ignored) {}
             }
             js("window.hcHttpDone && window.hcHttpDone(" + JSONObject.quote(sid) + "," + status + "," + JSONObject.quote(text) + ")");
         });
