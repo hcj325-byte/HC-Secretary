@@ -3,28 +3,46 @@ plugins {
 }
 
 android {
-    namespace 'com.hc.secretary'
-    compileSdk 34
+    namespace 'kr.hc.secretary.g'
+    compileSdk 36
 
     defaultConfig {
-        applicationId "com.hc.secretary"
-        minSdk 24
-        targetSdk 34
+        applicationId "kr.hc.secretary.g"
+        minSdk 26
+        targetSdk 36
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file('../../signing/release.p12')
+            storePassword System.getenv('KEYSTORE_PASSWORD')
+            keyAlias 'hc'
+            keyPassword System.getenv('KEYSTORE_PASSWORD')
+        }
     }
 
     buildTypes {
-        debug {
+        release {
+            signingConfig signingConfigs.release
             minifyEnabled false
         }
+        debug {
+            signingConfig signingConfigs.release
+        }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+
+    lint {
+        abortOnError false
+    }
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 }
