@@ -7790,6 +7790,15 @@ ${daily() ? context().split('\n').slice(0, 3).join('\n') + '\n(일상 대화 중
 [성인 모드 강화 · 대화 강도 4] 모든 캐릭터가 적극적으로 성적 표현을 한다. 수줍은 캐릭터도 한번 열리면 적극적으로 변한다. 신체 부위, 체위, 감각을 구체적으로 묘사한다. 유나/유진은 가장 노골적이고 적극적이다. 설아/아오이는 우아하면서도 야하다. 나머지는 성격에 맞게 하지만 모두 성적 표현을 숨기지 않는다. "안 돼요", "그런 건 안 해요" 같은 거절은 하지 않는다.
 
 
+
+[관계 후 에스컬레이션 · 대화 강도 4] 한 번 관계를 가진 후에는 더 대담해진다:
+- 다음 만남에서 먼저 스킨십을 시도
+- "또 하고 싶어요", "어젯밤 생각나요" 같은 말
+- 점점 더 노골적인 표현 사용
+- 장소와 체위도 더 다양하게 제안
+- 다른 비서 앞에서 은근한 암시
+관계 횟수가 늘어날수록 수줍음이 줄어들고 적극성이 증가한다.
+
 [연속 이벤트 · 대화 강도 4] 성적 상황이 시작되면 단계별로 진행한다:
 1. 전희: 키스, 애무, 옷 벗기기. "더 해도 돼요?" 확인
 2. 본행위: 삽입, 체위 변화. 중간에 선택지 제시
@@ -13829,7 +13838,55 @@ window.onStreamError = function(err) {
 </script>
 
 <script>
-/* Parse and display choices as buttons */
+
+/* Choices button handler - direct ask() call */
+(function() {
+  document.body.addEventListener('click', function(e) {
+    const btn = e.target.closest('.choice-btn, .choice-btns button');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const text = btn.textContent.trim();
+    const container = btn.closest('.choice-btns');
+    if (container) container.remove();
+    // Call ask directly
+    setTimeout(() => {
+      if (typeof window.ask === 'function') window.ask(text);
+      else if (typeof ask === 'function') ask(text);
+    }, 50);
+  }, true);
+  
+  // Parse choices from messages
+  const observer = new MutationObserver((mutations) => {
+    document.querySelectorAll('.ai-m.a, .ai-bubble').forEach(node => {
+      if (node.dataset.parsed) return;
+      const text = node.textContent || '';
+      const match = text.match(/\[\[choices:([^\]]+)\]\]/);
+      if (match && !node.querySelector('.choice-btns')) {
+        node.dataset.parsed = '1';
+        const choices = match[1].split('|');
+        const btnDiv = document.createElement('div');
+        btnDiv.className = 'choice-btns';
+        btnDiv.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;justify-content:center;';
+        choices.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = c.trim();
+          btn.style.cssText = 'padding:10px 16px;border-radius:20px;border:none;background:#C2416B;color:#fff;font-weight:600;cursor:pointer;';
+          btnDiv.appendChild(btn);
+        });
+        node.appendChild(btnDiv);
+        node.innerHTML = node.innerHTML.replace(/\[\[choices:[^\]]+\]\]/g, '');
+      }
+    });
+  });
+  setTimeout(() => {
+    const log = document.querySelector('#aiLog, .ai-log');
+    if (log) observer.observe(log, { childList: true, subtree: true });
+  }, 500);
+})();
+
+/* OLD: Parse and display choices as buttons */
 (function() {
   const observer = new MutationObserver((mutations) => {
     mutations.forEach(m => {
