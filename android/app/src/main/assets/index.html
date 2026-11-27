@@ -2789,14 +2789,14 @@ html.bghid300 *{animation-play-state:paused!important}
 .pr-go{display:block;width:100%;margin-top:14px;min-height:44px;border-radius:12px;border:0;background:var(--sec);color:#fff;font:700 14px var(--f-body)}
 
 /* 성인 모드 시각 효과 */
-#aiSec[data-heat="4"] .ai-avw{filter:saturate(1.2) contrast(1.05);}
-#aiSec[data-heat="4"] .ai-avw::after{content:'';position:absolute;inset:-4px;border-radius:50%;background:radial-gradient(circle,rgba(255,100,150,.3),transparent 70%);animation:adult-glow 2s ease-in-out infinite;pointer-events:none;}
+#aiSec[data-heat="4"] .ai-avw{filter:none;}
+#aiSec[data-heat="4"] .ai-avw::after{content:'';position:absolute;inset:-2px;border-radius:50%;background:radial-gradient(circle,rgba(255,100,150,.2),transparent 70%);pointer-events:none;}
 @keyframes adult-glow{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.8;transform:scale(1.05)}}
 #aiSec[data-heat="4"] .lb-av{box-shadow:0 0 20px rgba(255,100,150,.4);}
 #aiSec[data-heat="4"] .ai-scene{background:linear-gradient(180deg,rgba(255,200,220,.15),transparent 50%);}
 #aiSec[data-heat="4"] .ai-m.a{background:linear-gradient(135deg,rgba(255,240,245,.9),rgba(255,220,230,.8));}
 #aiSec[data-heat="4"] .av-blush{display:block!important;opacity:.7;}
-#aiSec[data-heat="4"] .ai-card{transform:scale(1.02);transition:transform .3s;}
+#aiSec[data-heat="4"] .ai-card{transition:transform .3s;}
 #aiSec[data-heat="4"] .ai-card:hover{transform:scale(1.05);}
 </style>
 <style id="ux265">
