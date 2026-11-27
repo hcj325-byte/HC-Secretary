@@ -13889,15 +13889,20 @@ window.onStreamError = function(err) {
 document.addEventListener('click', function(e) {
   if (e.target.classList.contains('choice-btn')) {
     e.preventDefault();
+    e.stopPropagation();
     const text = e.target.textContent.trim();
-    const inp = document.querySelector('#aiIn');
-    if (inp) {
-      inp.value = text;
-      inp.focus();
-      const send = document.querySelector('#aiSend');
-      if (send) setTimeout(() => send.click(), 100);
-    }
     e.target.parentElement.remove();
+    // Directly call ask function if available
+    if (typeof ask === 'function') {
+      ask(text);
+    } else {
+      const inp = document.querySelector('#aiIn');
+      if (inp) {
+        inp.value = text;
+        const send = document.querySelector('#aiSend');
+        if (send) send.click();
+      }
+    }
   }
 });
 </script>
