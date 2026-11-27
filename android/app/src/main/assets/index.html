@@ -13977,5 +13977,48 @@ document.addEventListener('click', function(e) {
   }
 });
 </script>
+
+<script>
+/* Choice button fix - intercept and process */
+(function() {
+  // Watch for choice tags and convert to clickable buttons
+  function processChoices() {
+    document.querySelectorAll('.ai-m.a .txt, .ai-bubble').forEach(el => {
+      if (el.dataset.choiceDone) return;
+      const html = el.innerHTML;
+      const match = html.match(/\[\[choices:([^\]]+)\]\]/);
+      if (match) {
+        el.dataset.choiceDone = '1';
+        const choices = match[1].split('|');
+        const btns = choices.map(c => 
+          '<button class="ch-btn" data-choice="' + c.trim() + '" style="padding:8px 14px;margin:4px;border-radius:16px;border:none;background:#C2416B;color:#fff;font-weight:600;">' + c.trim() + '</button>'
+        ).join('');
+        el.innerHTML = html.replace(/\[\[choices:[^\]]+\]\]/g, '<div class="ch-btns" style="margin:10px 0;text-align:center;">' + btns + '</div>');
+      }
+    });
+  }
+  
+  // Handle button clicks
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.ch-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const choice = btn.dataset.choice;
+    btn.parentElement.remove();
+    // Find and use the input
+    const input = document.querySelector('#aiIn');
+    const sendBtn = document.querySelector('#aiSend');
+    if (input && sendBtn) {
+      input.value = choice;
+      input.dispatchEvent(new Event('input', {bubbles:true}));
+      setTimeout(() => sendBtn.click(), 100);
+    }
+  });
+  
+  // Run periodically
+  setInterval(processChoices, 1000);
+})();
+</script>
 </body>
 </html>
